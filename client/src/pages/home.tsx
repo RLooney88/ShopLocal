@@ -74,8 +74,8 @@ export default function Home() {
           clsTransition
         )}
       >
-        <Card className="h-full flex flex-col shadow-xl border-t-4 border-t-[#00A7B7]">
-          <div className="p-4 border-b flex justify-between items-center bg-[#00A7B7] text-white">
+        <Card className="h-full flex flex-col shadow-xl border-0 rounded-none sm:rounded-lg">
+          <div className="p-4 border-b flex justify-between items-center rounded-none sm:rounded-t-lg bg-[#00A7B7] text-white">
             <h2 className="font-semibold">The Shop Local Assistant</h2>
             <Button
               variant="ghost"
