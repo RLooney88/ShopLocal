@@ -10,15 +10,22 @@ export default function Home() {
   const [chatStarted, setChatStarted] = useState(false);
   const [chatId, setChatId] = useState<number | null>(null);
   const [isOpen, setIsOpen] = useState(false);
+  const [isVisible, setIsVisible] = useState(false); // For smooth transitions
 
   // Ref to track the chatbot container
   const chatContainerRef = useRef<HTMLDivElement | null>(null);
+
+  // Smooth transition: Delay removal
+  const closeChat = () => {
+    setIsVisible(false);
+    setTimeout(() => setIsOpen(false), 300); // Match the transition duration
+  };
 
   // Close chatbot on Escape key or clicking outside
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
-        setIsOpen(false);
+        closeChat();
       }
     };
 
@@ -27,11 +34,12 @@ export default function Home() {
         chatContainerRef.current &&
         !chatContainerRef.current.contains(event.target as Node)
       ) {
-        setIsOpen(false);
+        closeChat();
       }
     };
 
     if (isOpen) {
+      setIsVisible(true); // Start fade-in transition
       document.addEventListener('keydown', handleKeyDown);
       document.addEventListener('mousedown', handleClickOutside);
     }
@@ -53,10 +61,17 @@ export default function Home() {
     );
   }
 
+  const clsTransition = isVisible
+    ? 'opacity-100 translate-y-0 visible'
+    : 'duration-700 opacity-10 translate-y-full invisible';
+
   return (
     <div
       ref={chatContainerRef}
-      className="fixed sm:bottom-4 sm:right-4 w-[100vw] sm:w-[400px] h-[100vh] sm:h-[95vh] lg:h-[600px] transition-all duration-300 ease-in-out"
+      className={cn(
+        'fixed sm:bottom-4 sm:right-4 w-[100vw] sm:w-[400px] h-[100vh] sm:h-[95vh] lg:h-[600px] transition-all duration-300 ease-in-out',
+        clsTransition
+      )}
     >
       <Card className="h-full flex flex-col shadow-xl border-t-4 border-t-[#00A7B7]">
         <div className="p-4 border-b flex justify-between items-center bg-[#00A7B7] text-white">
@@ -65,7 +80,7 @@ export default function Home() {
             variant="ghost"
             size="icon"
             className="h-8 w-8 text-white hover:text-white hover:bg-[#008A99]"
-            onClick={() => setIsOpen(false)}
+            onClick={() => closeChat()}
           >
             <X className="h-4 w-4" />
           </Button>
