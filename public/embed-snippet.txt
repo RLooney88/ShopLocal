@@ -1,2 +1,0 @@
-<!-- Add Shop Local Assistant to your website. Copy and paste this code: -->
-<script src="https://ai-local-buddy-rlooney.replit.app/widget.js"></script>
