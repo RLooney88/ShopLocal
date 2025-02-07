@@ -1,9 +1,12 @@
-import express, { type Request, Response, NextFunction } from "express";
-import { registerRoutes } from "./routes";
-import { setupVite, serveStatic, log } from "./vite";
-import path, { dirname } from "path";
-import { fileURLToPath } from "url";
-import fs from "fs";
+import express, { type Request, Response, NextFunction } from 'express';
+import { registerRoutes } from './routes';
+import { setupVite, serveStatic, log } from './vite';
+import path, { dirname } from 'path';
+import { fileURLToPath } from 'url';
+import fs from 'fs';
+
+import dotenv from 'dotenv';
+dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -11,14 +14,14 @@ const __dirname = dirname(__filename);
 const app = express();
 
 // Create public directory if it doesn't exist
-const publicDir = path.join(process.cwd(), "client", "public");
+const publicDir = path.join(process.cwd(), 'client', 'public');
 if (!fs.existsSync(publicDir)) {
   fs.mkdirSync(publicDir, { recursive: true });
 }
 
 // Specific route for widget.js - must come before other middleware
 app.get('/widget.js', (req, res) => {
-  const widgetPath = path.join(process.cwd(), "client", "public", "widget.js");
+  const widgetPath = path.join(process.cwd(), 'client', 'public', 'widget.js');
   try {
     if (fs.existsSync(widgetPath)) {
       const content = fs.readFileSync(widgetPath, 'utf8');
@@ -50,12 +53,12 @@ app.use((req, res, next) => {
   res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Content-Type');
   res.header('X-Frame-Options', 'ALLOW-FROM *');
-  res.header('Content-Security-Policy', "frame-ancestors *");
+  res.header('Content-Security-Policy', 'frame-ancestors *');
   next();
 });
 
 // Add express static middleware for public directory
-app.use(express.static(path.join(process.cwd(), "client", "public")));
+app.use(express.static(path.join(process.cwd(), 'client', 'public')));
 
 // Logging middleware
 app.use((req, res, next) => {
@@ -69,16 +72,20 @@ app.use((req, res, next) => {
     return originalResJson.apply(res, [bodyJson, ...args]);
   };
 
-  res.on("finish", () => {
+  res.on('finish', () => {
     const duration = Date.now() - start;
-    if (path.startsWith("/api") || path.includes('.js') || path.includes('widget')) {
+    if (
+      path.startsWith('/api') ||
+      path.includes('.js') ||
+      path.includes('widget')
+    ) {
       let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
       if (capturedJsonResponse) {
         logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
       }
 
       if (logLine.length > 80) {
-        logLine = logLine.slice(0, 79) + "…";
+        logLine = logLine.slice(0, 79) + '…';
       }
 
       log(logLine);
@@ -94,21 +101,21 @@ app.use((req, res, next) => {
   // Global error handler
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
+    const message = err.message || 'Internal Server Error';
     log(`Error handling request: ${err.message}`);
     res.status(status).json({ message });
     throw err;
   });
 
   // Set up Vite or serve static files based on environment
-  if (app.get("env") === "development") {
+  if (app.get('env') === 'development') {
     await setupVite(app, server);
   } else {
     serveStatic(app);
   }
 
   const PORT = 5000;
-  server.listen(PORT, "0.0.0.0", () => {
+  server.listen(PORT, '0.0.0.0', () => {
     log(`serving on port ${PORT}`);
   });
 })();

@@ -1,11 +1,14 @@
-import OpenAI from "openai";
-import type { ChatMessage, BusinessInfo } from "@shared/schema";
+import OpenAI from 'openai';
+import type { ChatMessage, BusinessInfo } from '@shared/schema';
+
+import dotenv from 'dotenv';
+dotenv.config();
 
 // the newest OpenAI model is "gpt-4o" which was released May 13, 2024
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 export async function findMatchingBusinesses(
-  query: string, 
+  query: string,
   businesses: any[],
   previousMessages: ChatMessage[] = []
 ): Promise<{
@@ -15,10 +18,10 @@ export async function findMatchingBusinesses(
 }> {
   try {
     const response = await openai.chat.completions.create({
-      model: "gpt-4o",
+      model: 'gpt-4o',
       messages: [
         {
-          role: "system",
+          role: 'system',
           content: `You are a friendly and helpful business directory assistant. Use a warm, conversational tone and speak in first person ("I") rather than "we". Be enthusiastic but professional.
 
             Important guidelines:
@@ -91,44 +94,46 @@ export async function findMatchingBusinesses(
               "questionContext": "natural explanation of why I'm asking this question",
               "isClosing": boolean,
               "matchReason": "why this is a great match (only for single matches)"
-            }`
+            }`,
         },
         {
-          role: "user",
+          role: 'user',
           content: JSON.stringify({
             query,
             businesses,
-            conversationHistory: previousMessages
-          })
-        }
+            conversationHistory: previousMessages,
+          }),
+        },
       ],
-      response_format: { type: "json_object" }
+      response_format: { type: 'json_object' },
     });
 
     const content = response.choices[0].message.content;
     if (!content) {
-      throw new Error("Failed to get response from OpenAI");
+      throw new Error('Failed to get response from OpenAI');
     }
 
     const result = JSON.parse(content);
     return {
-      message: result.isClosing 
-        ? result.message 
-        : result.matches.length > 1 
-          ? `${result.message}\n\n${result.followUpQuestion}${result.questionContext ? `\n\n(${result.questionContext})` : ''}`
-          : result.message,
+      message: result.isClosing
+        ? result.message
+        : result.matches.length > 1
+        ? `${result.message}\n\n${result.followUpQuestion}${
+            result.questionContext ? `\n\n(${result.questionContext})` : ''
+          }`
+        : result.message,
       matches: result.matches.map((match: any) => ({
         name: match.name,
         primaryServices: match.primaryServices,
         categories: match.categories,
         phone: match.phone,
         email: match.email,
-        website: match.website
+        website: match.website,
       })),
-      isClosing: result.isClosing
+      isClosing: result.isClosing,
     };
   } catch (error) {
-    console.error("Error in findMatchingBusinesses:", error);
+    console.error('Error in findMatchingBusinesses:', error);
     throw error;
   }
 }
