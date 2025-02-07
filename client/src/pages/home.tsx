@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { UserForm } from '@/components/chat/user-form';
 import { ChatInterface } from '@/components/chat/chat-interface';
 import { Card } from '@/components/ui/card';
@@ -10,6 +10,37 @@ export default function Home() {
   const [chatStarted, setChatStarted] = useState(false);
   const [chatId, setChatId] = useState<number | null>(null);
   const [isOpen, setIsOpen] = useState(false);
+
+  // Ref to track the chatbot container
+  const chatContainerRef = useRef<HTMLDivElement | null>(null);
+
+  // Close chatbot on Escape key or clicking outside
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsOpen(false);
+      }
+    };
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        chatContainerRef.current &&
+        !chatContainerRef.current.contains(event.target as Node)
+      ) {
+        setIsOpen(false);
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('keydown', handleKeyDown);
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isOpen]);
 
   if (!isOpen) {
     return (
@@ -23,7 +54,10 @@ export default function Home() {
   }
 
   return (
-    <div className="fixed sm:bottom-4 sm:right-4 w-[100vw] sm:w-[400px] h-[100vh] sm:h-[95vh] lg:h-[600px] transition-all duration-300 ease-in-out">
+    <div
+      ref={chatContainerRef}
+      className="fixed sm:bottom-4 sm:right-4 w-[100vw] sm:w-[400px] h-[100vh] sm:h-[95vh] lg:h-[600px] transition-all duration-300 ease-in-out"
+    >
       <Card className="h-full flex flex-col shadow-xl border-t-4 border-t-[#00A7B7]">
         <div className="p-4 border-b flex justify-between items-center bg-[#00A7B7] text-white">
           <h2 className="font-semibold">The Shop Local Assistant</h2>
